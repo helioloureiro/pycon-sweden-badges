@@ -1,5 +1,8 @@
 import csv
 import html
+import json
+import re
+
 
 def GetParticipantsFromCSV(csvfile: str):
     participants = []
@@ -36,9 +39,69 @@ def GetParticipantsFromCSV(csvfile: str):
             })
     return participants
 
+
 def resetParticipantsData():
     return []
+
 
 def numberOfParticipants(participantsList):
     return len(participantsList)
 
+
+def _normalizeTicketName(ticket: str) -> str:
+    ticket = ticket.split()[0]
+    return ticket
+
+
+def GetParticipantsFromJSON(jsonfile: str) -> list[dict[str, str]]:
+    participants = []
+
+    with open(jsonfile) as fh:
+        jf = json.load(fh)
+    tickets = {}
+    ticket_types = jf["event"]["items"]
+    for t in ticket_types:
+        ticket_id = t["id"]
+        ticket_name = _normalizeTicketName(t["name"])
+        if ticket_name in ("T-shirt", "AfterCon"):
+            continue
+        tickets[ticket_id] = ticket_name
+
+    print(tickets)
+    orders = jf["event"]["orders"]
+
+    # participants.append({
+    # "first_name": firstName,
+    # "last_name": familyName,
+    # "company": company,
+    # "ticket_type": ticketType,
+    # "job_title": jobTitle
+    # })
+
+    for o in orders:
+        full_name = ""
+        company = ""
+        ticket_type = ""
+        job_title = ""
+        for p in o["positions"]:
+            if "attendee_name" in p and p["attendee_name"] is not None:
+                full_name = p["attendee_name"]
+            for a in p["answers"]:
+                if a["question"] == 294029:
+                    company = a["answer"]
+            if "item" in p:
+                if p["item"] in tickets:
+                    ticket_type = tickets[p["item"]]
+
+        name_chunks = full_name.split()
+        first_name = name_chunks[0].capitalize()
+        last_name = name_chunks[-1].capitalize()
+        print(first_name, last_name, company, ticket_type, job_title)
+        participants.append({
+            "first_name": first_name,
+            "last_name": last_name,
+            "company": company,
+            "ticket_type": ticket_type,
+            "job_title": job_title
+        })
+    return participants

@@ -1,6 +1,7 @@
 import csv
 import html
 
+
 def GetParticipantsFromCSV(csvfile: str):
     participants = []
     with open(csvfile, encoding='utf-8') as csvFile:
@@ -27,9 +28,14 @@ def GetParticipantsFromCSV(csvfile: str):
             })
     return participants
 
+
 def resetParticipantsData():
     return []
+
 
 def numberOfParticipants(participantsList):
     return len(participantsList)
 
+
+def GetParticipantsFromJSON(jsonfile: str):
+    raise Exception("method not supported for EventBrite")

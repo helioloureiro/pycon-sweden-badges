@@ -16,6 +16,8 @@ DEFAULTBACKGROUND = "background_default.png"
 BLANKS = 10
 BADGES_PER_PAGE = 4
 BADGES_TEMPLATE = "badges/4BadgesOnA4.svg"
+# {1095794: 'Business', 1095795: 'Personal', 1095796: 'Student', 1095797: 'Sponsor', 1095798: 'Speaker', 1095799: 'Organization', 1095800: 'Community', 1095802: 'Keynote', 1095804: 'Donation'}
+
 BADGES = {
     "Early Bird" : DEFAULTBACKGROUND,
     "Early Bird Special" : DEFAULTBACKGROUND,
@@ -26,7 +28,9 @@ BADGES = {
     "Business - Invoiced" : DEFAULTBACKGROUND,
     "Business discounted" : DEFAULTBACKGROUND,
     "Volunteers and board" : "background_organization.png",
+    "Organization" : "background_organization.png",
     "Speakers" : "background_speaker.png",
+    "Speaker" : "background_speaker.png",
     "Last call" : "background_lastcall.png",
     "Business 50%" : DEFAULTBACKGROUND,
     "Sponsors" : DEFAULTBACKGROUND,
@@ -108,10 +112,12 @@ class BadgePrinter:
         print("Generating page:", pageNumber)
         shellExec(f"inkscape --pipe --export-dpi=600 --export-filename={pdf} {svg}")
 
+
 def getBackGround(ticketCode):
     if ticketCode in BADGES:
         return BADGES[ticketCode]
     raise Exception(f"Unknown ticket code: {ticketCode}")
+
 
 def groupBackGrounds(array_ticketCodes):
     result = []
@@ -119,6 +125,7 @@ def groupBackGrounds(array_ticketCodes):
         result.append(getBackGround(ticketCode))
 
     return result
+
 
 def getUserDataFormatted(firstName=None, lastName=None, ticketType=None, company=None, jobTitle=None):
     if firstName is None:
@@ -139,17 +146,19 @@ def getUserDataFormatted(firstName=None, lastName=None, ticketType=None, company
         "ticket_type": ticketType,
         "job_title": jobTitle
     }
-    
-    
+
 
 def resetParticipantsData():
     return []
 
+
 def numberOfParticipants(participantsList):
     return len(participantsList)
 
-def main(args):
 
+def main(args):
+    if args.csvfile is None and args.jsonfile is None:
+        raise Exception("it is missing both --csvfile and --jsonfile: at the least on should be used")
     module = None
     if args.type == "eventbrite":
         print("Selecting Eventbrite format")
@@ -161,8 +170,13 @@ def main(args):
         module = pretixlib
     else:
         raise Exception("Unknown --type. Use or\"eventbrite\" or \"pretix\".")
-    print("Parsing csv file:", args.csvfile)
-    participants = module.GetParticipantsFromCSV(args.csvfile)
+
+    if args.csvfile:
+        print("Parsing csv file:", args.csvfile)
+        participants = module.GetParticipantsFromCSV(args.csvfile)
+    elif args.jsonfile:
+        print("Parsing json file:", args.jsonfile)
+        participants = module.GetParticipantsFromJSON(args.jsonfile)
 
     badge = BadgePrinter()
     # it ended in nr different than 4
@@ -207,7 +221,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create badges for PyCon Sweden 2022.')
-    parser.add_argument('--csvfile', required=True, help='CSV file with input data.')
+    parser.add_argument('--csvfile', help='CSV file with input data.')
+    parser.add_argument("--jsonfile", help='JSON exported from Pretix (only Pretix is supported)')
     parser.add_argument('--type', required=True, help="Use [eventbrite|pretix] to select the type of csv content.")
 
     args = parser.parse_args()
