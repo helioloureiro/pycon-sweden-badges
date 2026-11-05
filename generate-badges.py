@@ -13,7 +13,7 @@ import subprocess
 
 BADGESIZE = "80x50"
 DEFAULTBACKGROUND = "background_default.png"
-BLANKS = 10
+BLANKS = 20
 BADGES_PER_PAGE = 4
 BADGES_TEMPLATE = "badges/4BadgesOnA4.svg"
 # {1095794: 'Business', 1095795: 'Personal', 1095796: 'Student', 1095797: 'Sponsor', 1095798: 'Speaker', 1095799: 'Organization', 1095800: 'Community', 1095802: 'Keynote', 1095804: 'Donation'}
@@ -46,6 +46,7 @@ OUTPUTDIR = "generated"
 # it doesn't work...
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
+
 def createDirs(directory):
     '''
     It creates the need directory if it isn't there yet.
@@ -53,8 +54,10 @@ def createDirs(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
 def shellExec(command):
     return subprocess.check_output(command.split(), stderr=subprocess.STDOUT, shell=False)
+
 
 class BadgePrinter:
     def __init__(self):
@@ -78,8 +81,14 @@ class BadgePrinter:
             ticket_type = entry["ticket_type"]
             job_title = entry["job_title"]
 
+            if len(company) > 46:
+                company = company[:45]+ "..."
+
+            # To handle H&M issue
+            company = re.sub('&', '&amp;', company)
+
             # shorten too wide entries
-            for entry in [ first_name, last_name, company, job_title ]:
+            for entry in [first_name, last_name, company, job_title]:
                 if len(entry) > CARACTERS_LIMIT:
                     entry = entry[:CARACTERS_LIMIT]
 
@@ -94,7 +103,7 @@ class BadgePrinter:
             if mainBackground:
                 background = mainBackground
                 pass
-            elif not ticket_type in BADGES:
+            elif ticket_type not in BADGES:
                 background = DEFAULTBACKGROUND
             else:
                 background = BADGES[ticket_type]

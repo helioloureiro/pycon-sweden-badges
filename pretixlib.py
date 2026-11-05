@@ -78,6 +78,7 @@ def GetParticipantsFromJSON(jsonfile: str) -> list[dict[str, str]]:
     # "job_title": jobTitle
     # })
 
+    counter = 1
     for o in orders:
         full_name = ""
         company = ""
@@ -96,7 +97,7 @@ def GetParticipantsFromJSON(jsonfile: str) -> list[dict[str, str]]:
         name_chunks = full_name.split()
         first_name = name_chunks[0].capitalize()
         last_name = name_chunks[-1].capitalize()
-        print(first_name, last_name, company, ticket_type, job_title)
+        print(counter, first_name, last_name, company, ticket_type, job_title)
         participants.append({
             "first_name": first_name,
             "last_name": last_name,
@@ -104,4 +105,5 @@ def GetParticipantsFromJSON(jsonfile: str) -> list[dict[str, str]]:
             "ticket_type": ticket_type,
             "job_title": job_title
         })
+        counter += 1
     return participants
